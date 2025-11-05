@@ -16,7 +16,7 @@ export default function NotFound() {
           </p>
           <div className="flex justify-center gap-2">
             <Button asChild>
-              <Link href="/token/eth">Go to Ethereum</Link>
+              <Link href="/token/ethereum">Go to Ethereum</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/token/bitcoin">Go to Bitcoin</Link>
