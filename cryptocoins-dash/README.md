@@ -1,6 +1,6 @@
 # Crypto Dashboard
 
-A modern cryptocurrency market data dashboard built with Next.js 16, featuring real-time price updates, interactive charts, market metrics, and news integration.
+A modern cryptocurrency market data dashboard built with Next.js 16, featuring real-time price updates, interactive charts, market metrics, news integration, and wallet connection capabilities.
 
 ## Features
 
@@ -13,6 +13,9 @@ A modern cryptocurrency market data dashboard built with Next.js 16, featuring r
   - Multiple time ranges (1H, 24H, 1W, 1M, 3M, 6M, 1Y, ALL)
 - **Market Data**: Comprehensive metrics with sparkline charts
 - **News Integration**: Real-time cryptocurrency news feed
+- **Wallet Connection**: Connect MetaMask and other Ethereum wallets
+- **Token Balance Display**: View your wallet balance for any supported token
+- **Multi-Wallet Support**: MetaMask, WalletConnect, Coinbase Wallet, and more
 - **Dark/Light Mode**: Theme switching with persistence
 - **CSV Export**: Export current market data to CSV
 - **Responsive Design**: Mobile-first, works on all devices
@@ -24,10 +27,11 @@ A modern cryptocurrency market data dashboard built with Next.js 16, featuring r
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript (strict mode)
 - **Styling**: Tailwind CSS v4
-- **Charts**: Recharts
+- **Charts**: Recharts, ApexCharts
 - **UI Components**: Custom shadcn-inspired components (Radix UI primitives)
-- **API**: CoinGecko API
-- **State Management**: React hooks
+- **Wallet Integration**: wagmi, viem, RainbowKit
+- **API**: CoinGecko API, TheNewsAPI
+- **State Management**: React hooks, TanStack Query
 - **Code Quality**: ESLint, Prettier, Husky, lint-staged
 
 ## Getting Started
@@ -141,17 +145,28 @@ The CoinGecko news API endpoint (`/api/v3/news`) does not require authentication
 ```
 cryptocoins-dash/
 ├── app/
-│   ├── [id]/              # Dynamic route for cryptocurrency pages
-│   │   ├── page.tsx       # Server component with SSR
-│   │   └── not-found.tsx  # 404 page
-│   ├── components/
-│   │   ├── crypto/        # Crypto-specific components
-│   │   ├── providers/     # Context providers (Theme, Toast)
-│   │   └── ui/            # Reusable UI components
-│   ├── lib/
-│   │   ├── api/           # API clients (CoinGecko, News)
-│   │   ├── types/         # TypeScript type definitions
-│   │   └── utils/         # Utility functions
+│   ├── (routes)/
+│   │   └── token/
+│   │       └── [id]/      # Dynamic route for cryptocurrency pages
+│   │           ├── page.tsx       # Server component with SSR
+│   │           └── loading.tsx   # Loading state
+│   ├── (shared)/
+│   │   ├── components/
+│   │   │   ├── crypto/        # Crypto-specific components
+│   │   │   │   ├── WalletConnectButton.tsx  # Wallet connection UI
+│   │   │   │   ├── TokenBalance.tsx         # Token balance display
+│   │   │   │   └── ...         # Other crypto components
+│   │   │   ├── providers/     # Context providers
+│   │   │   │   ├── ThemeProvider.tsx
+│   │   │   │   └── WalletProvider.tsx       # Wallet context provider
+│   │   │   └── ui/            # Reusable UI components
+│   │   └── lib/
+│   │       ├── api/           # API clients (CoinGecko, News)
+│   │       ├── config/        # Configuration files
+│   │       │   ├── wagmi.ts           # Wagmi configuration
+│   │       │   └── token-contracts.ts # Token contract mappings
+│   │       ├── types/         # TypeScript type definitions
+│   │       └── utils/         # Utility functions
 │   ├── layout.tsx         # Root layout with providers
 │   ├── page.tsx           # Home page (redirects to /eth)
 │   └── globals.css        # Global styles and theme variables
@@ -206,6 +221,24 @@ Navigate to `/[coin-id]` where `coin-id` is the CoinGecko coin ID
 - Real-time cryptocurrency news
 - Auto-refreshes every 30 seconds
 - Click to read full articles
+- Coin-specific news filtering
+
+### Wallet Connection
+
+- Connect MetaMask, WalletConnect, Coinbase Wallet, and more
+- View your wallet address and network
+- Switch between Ethereum Mainnet and Sepolia testnet
+- Automatic connection persistence
+
+### Token Balance Display
+
+- View your wallet balance for any supported token
+- Supports native ETH and ERC-20 tokens
+- Real-time balance updates
+- Automatic token detection based on page you're viewing
+- Shows "N/A" for unsupported tokens
+
+**Supported Tokens**: Ethereum (ETH), USDC, USDT, DAI, WBTC, LINK, UNI, MATIC, AAVE, MKR, COMP, SAND, AXS, MANA, CRO, SHIB, PEPE, and more.
 
 ### Export to CSV
 
@@ -246,11 +279,17 @@ Create a `.env.local` file (optional):
 # Optional: CoinGecko API Key (for higher rate limits)
 COINGECKO_API_KEY=your_api_key_here
 
-# Optional: Alternative News API Key
-NEWS_API_KEY=your_news_api_key_here
+# Optional: News API Key (for TheNewsAPI)
+CRYPTO_NEWS_API_KEY=your_news_api_key_here
+
+# Optional: WalletConnect Project ID (for WalletConnect support)
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
 ```
 
-**Note**: The application works without API keys using the free tier, but you may encounter rate limits during heavy usage.
+**Note**:
+
+- The application works without API keys using the free tier, but you may encounter rate limits during heavy usage.
+- Wallet connection works without a WalletConnect project ID, but you'll only see MetaMask and injected wallets. To enable WalletConnect (mobile wallet support), get a free project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/).
 
 ## Contributing
 
@@ -268,8 +307,22 @@ This project is part of a take-home assignment. Please refer to the original ass
 
 ## Learn More
 
+### Framework & Libraries
+
 - [Next.js Documentation](https://nextjs.org/docs)
-- [CoinGecko API Documentation](https://www.coingecko.com/en/api/documentation)
 - [React Server Components](https://react.dev/reference/rsc/server-components)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Recharts Documentation](https://recharts.org/)
+- [ApexCharts Documentation](https://apexcharts.com/docs/react-charts/)
+
+### Wallet Integration
+
+- [wagmi Documentation](https://wagmi.sh/)
+- [viem Documentation](https://viem.sh/)
+- [RainbowKit Documentation](https://rainbowkit.com/)
+- [WalletConnect Cloud](https://cloud.walletconnect.com/)
+
+### APIs
+
+- [CoinGecko API Documentation](https://www.coingecko.com/en/api/documentation)
+- [TheNewsAPI Documentation](https://www.thenewsapi.com/documentation)
