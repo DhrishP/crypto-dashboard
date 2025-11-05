@@ -49,6 +49,13 @@ export function PriceChart({
 
   const fetchChartData = useCallback(
     async (range: TimeRange, retryCount = 0) => {
+      const isAllRange = range === "all";
+      if (isAllRange) {
+        toast.error("Public API error", {
+          description: "Pro accounts allow All option",
+        });
+      }
+
       try {
         setLoading(true);
         if (isCandlestick) {
@@ -90,6 +97,9 @@ export function PriceChart({
           setChartData(coinData);
         }
       } catch (error) {
+        if (isAllRange) {
+          return;
+        }
         if (
           error instanceof ApiError &&
           error.statusCode === 429 &&
@@ -116,6 +126,19 @@ export function PriceChart({
   useEffect(() => {
     fetchChartData(selectedRange);
   }, [selectedRange, fetchChartData]);
+
+  // Auto-refresh chart data every 30s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchChartData(selectedRange);
+      if (showBitcoin) {
+        getBitcoinData()
+          .then(setBitcoinData)
+          .catch(() => {});
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchChartData, selectedRange, showBitcoin]);
 
   useEffect(() => {
     if (showBitcoin) {

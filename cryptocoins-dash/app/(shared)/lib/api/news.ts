@@ -1,7 +1,6 @@
 import { NewsItem } from "@/lib/types/crypto";
 
-const COINGECKO_NEWS_API = "https://api.coingecko.com/api/v3/news";
-const CRYPTOPANIC_API_KEY = process.env.CRYPTOPANIC_API_KEY;
+const CRYPTO_NEWS_API_KEY = process.env.CRYPTO_NEWS_API_KEY;
 
 class NewsApiError extends Error {
   constructor(
@@ -18,103 +17,105 @@ interface GetNewsOptions {
   symbol?: string;
 }
 
-interface CryptoPanicResponse {
-  results?: CryptoPanicPost[];
-}
-
-interface CryptoPanicPost {
-  id?: number;
-  slug?: string;
-  title?: string;
-  domain?: string;
-  source?: { title?: string };
-  url?: string;
-  published_at?: string;
-  metadata?: { image?: string };
-}
-
-interface CoinGeckoNewsItem {
-  id?: string;
-  slug?: string;
-  title?: string;
-  description?: string;
-  content?: string;
-  url?: string;
-  link?: string;
-  published_at?: string;
-  created_at?: string;
-  source?: string;
-  author?: string;
-  thumb_2x?: string;
-  image_url?: string;
+function normalizeDate(input?: string): string {
+  if (!input) return new Date().toISOString();
+  const parsed = Date.parse(input);
+  if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();
+  const num = Number(input);
+  if (!Number.isNaN(num)) {
+    const ms = input.length === 10 ? num * 1000 : num;
+    return new Date(ms).toISOString();
+  }
+  return new Date().toISOString();
 }
 
 export async function getCryptoNews(
   options?: GetNewsOptions
 ): Promise<NewsItem[]> {
   try {
-    if (CRYPTOPANIC_API_KEY && options?.symbol) {
-      const qp = new URLSearchParams({
-        auth: CRYPTOPANIC_API_KEY,
-        currencies: options.symbol.toUpperCase(),
-        kind: "news",
-        public: "true",
-      });
-      const cpUrl = `https://cryptopanic.com/api/v1/posts/?${qp.toString()}`;
-      const cpRes = await fetch(cpUrl, { next: { revalidate: 60 } });
-      if (!cpRes.ok) {
-        throw new NewsApiError(
-          `Failed to fetch CryptoPanic: ${cpRes.statusText}`,
-          cpRes.status
-        );
-      }
-      const cpJson: CryptoPanicResponse = await cpRes.json();
-      const posts: CryptoPanicPost[] = Array.isArray(cpJson?.results)
-        ? cpJson.results
-        : [];
-      return posts.slice(0, 12).map((p: CryptoPanicPost) => ({
-        id: String(p.id ?? p.slug ?? p.title ?? ""),
-        title: p.title ?? "",
-        description: p.domain ?? p.source?.title ?? "",
-        url: p.url ?? "#",
-        published_at: p.published_at ?? new Date().toISOString(),
-        source: p.source?.title ?? p.domain ?? undefined,
-        thumb_2x: p.metadata?.image ?? undefined,
-      }));
+    if (!CRYPTO_NEWS_API_KEY) {
+      throw new NewsApiError("CRYPTO_NEWS_API_KEY is not configured");
     }
 
-    // Fallback to general CoinGecko news
-    const url = `${COINGECKO_NEWS_API}?page=1&per_page=20`;
+    const query = (options?.coinId || options?.symbol || "crypto").toString();
 
-    const response = await fetch(url, {
-      next: { revalidate: 30 },
+    const to = new Date();
+    const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const qs = new URLSearchParams({
+      apikey: CRYPTO_NEWS_API_KEY,
+      q: query,
+      from: from.toISOString(),
+      to: to.toISOString(),
+      size: "20",
+      langs: "en",
     });
-
-    if (!response.ok) {
+    const url = `https://api.thenewsapi.net/crypto?${qs.toString()}`;
+    const res = await fetch(url, { next: { revalidate: 30 } });
+    if (!res.ok) {
       throw new NewsApiError(
-        `Failed to fetch news: ${response.statusText}`,
-        response.status
+        `Failed to fetch TheNewsAPI: ${res.statusText}`,
+        res.status
       );
     }
+    interface TheNewsAPIResponse {
+      success?: boolean;
+      data?: { results?: unknown[] } | unknown[];
+      results?: unknown[];
+    }
 
-    const json: CoinGeckoNewsItem[] | { data?: CoinGeckoNewsItem[] } =
-      await response.json();
-    const items: CoinGeckoNewsItem[] = Array.isArray(json)
-      ? json
-      : Array.isArray(json?.data)
-        ? json.data
-        : [];
+    interface NewsAPIItem {
+      id?: string | number;
+      uuid?: string;
+      title?: string;
+      description?: string;
+      excerpt?: string;
+      url?: string;
+      published_at?: string;
+      created_at?: string;
+      source?: string | { name?: string; domain?: string };
+      domain?: string;
+      author?: string;
+      image_url?: string;
+      image?: string;
+      thumbnail?: string;
+    }
 
-    return items.slice(0, 10).map((it: CoinGeckoNewsItem) => ({
-      id: String(it.id ?? it.slug ?? it.title ?? ""),
-      title: it.title ?? "",
-      description: it.description ?? it.content ?? "",
-      url: it.url ?? it.link ?? "#",
-      published_at:
-        it.published_at ?? it.created_at ?? new Date().toISOString(),
-      source: it.source ?? it.author ?? undefined,
-      thumb_2x: it.thumb_2x ?? it.image_url ?? undefined,
-    }));
+    const body = (await res.json()) as unknown as TheNewsAPIResponse;
+    let items: unknown[] = [];
+    if (
+      typeof body?.data === "object" &&
+      body.data !== null &&
+      !Array.isArray(body.data) &&
+      "results" in body.data
+    ) {
+      const dataResults = (body.data as { results?: unknown[] }).results;
+      if (Array.isArray(dataResults)) {
+        items = dataResults;
+      }
+    } else if (Array.isArray(body?.results)) {
+      items = body.results;
+    } else if (Array.isArray(body?.data)) {
+      items = body.data;
+    }
+
+    const mapped: NewsItem[] = (items as NewsAPIItem[]).map(
+      (n: NewsAPIItem) => {
+        const sourceName =
+          typeof n.source === "string"
+            ? n.source
+            : (n?.source?.name ?? n?.domain ?? n?.author ?? undefined);
+        return {
+          id: String(n.id ?? n.uuid ?? n.url ?? n.title ?? Math.random()),
+          title: n.title ?? "",
+          description: n.description ?? n.excerpt ?? "",
+          url: n.url ?? "#",
+          published_at: normalizeDate(n.published_at ?? n.created_at),
+          source: sourceName,
+          thumb_2x: n.image_url ?? n.image ?? n.thumbnail ?? undefined,
+        };
+      }
+    );
+    return mapped;
   } catch (error) {
     if (error instanceof NewsApiError) {
       throw error;

@@ -57,7 +57,7 @@ export function PriceHeader({
       } finally {
         setLoading(false);
       }
-    }, 90000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [coinId, currency]);

@@ -105,7 +105,11 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
           </div>
 
           <div className="mt-12">
-            <NewsSection coinId={id} initialNews={news} />
+            <NewsSection
+              coinId={id}
+              symbol={coinData.symbol}
+              initialNews={news}
+            />
           </div>
         </div>
       </div>

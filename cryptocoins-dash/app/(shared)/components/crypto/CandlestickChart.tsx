@@ -63,9 +63,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   );
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <ApexChart
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       options={options as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series={series as any}
       type="candlestick"
       height={400}
