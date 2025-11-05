@@ -16,10 +16,10 @@ export default function NotFound() {
           </p>
           <div className="flex justify-center gap-2">
             <Button asChild>
-              <Link href="/eth">Go to Ethereum</Link>
+              <Link href="/token/eth">Go to Ethereum</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/bitcoin">Go to Bitcoin</Link>
+              <Link href="/token/bitcoin">Go to Bitcoin</Link>
             </Button>
           </div>
         </CardContent>
