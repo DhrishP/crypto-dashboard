@@ -30,6 +30,14 @@ export interface HistoricalData {
   total_volumes: [number, number][];
 }
 
+export interface OHLCPoint {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
 export interface MarketData {
   marketCap: number;
   rank: number;
@@ -61,34 +69,18 @@ export interface CoinInfo {
     large: string;
   };
   market_data: {
-    current_price: {
-      usd: number;
-    };
+    current_price: Record<string, number>;
     price_change_percentage_24h: number;
-    market_cap: {
-      usd: number;
-    };
+    market_cap: Record<string, number>;
     market_cap_rank: number;
-    total_volume: {
-      usd: number;
-    };
+    total_volume: Record<string, number>;
     circulating_supply: number;
     total_supply: number;
-    ath: {
-      usd: number;
-    };
-    ath_change_percentage: {
-      usd: number;
-    };
-    atl: {
-      usd: number;
-    };
-    atl_change_percentage: {
-      usd: number;
-    };
-    price_change_percentage_7d_in_currency: {
-      usd: number;
-    };
+    ath: Record<string, number>;
+    ath_change_percentage: Record<string, number>;
+    atl: Record<string, number>;
+    atl_change_percentage: Record<string, number>;
+    price_change_percentage_7d_in_currency: Record<string, number>;
   };
 }
 
@@ -102,7 +94,7 @@ export type TimeRange =
   | "365d"
   | "all";
 
-export const TIME_RANGE_DAYS: Record<TimeRange, number> = {
+export const TIME_RANGE_DAYS: Record<TimeRange, number | "max"> = {
   "1h": 1,
   "24h": 1,
   "7d": 7,
@@ -110,5 +102,5 @@ export const TIME_RANGE_DAYS: Record<TimeRange, number> = {
   "90d": 90,
   "180d": 180,
   "365d": 365,
-  all: 2000,
+  all: "max",
 };

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import {
   getCoinData,
   getHistoricalData,
@@ -12,12 +11,14 @@ import { PriceChart } from "@/components/crypto/PriceChart";
 import { MarketData as MarketDataComponent } from "@/components/crypto/MarketData";
 import { NewsSection } from "@/components/crypto/NewsSection";
 import { ThemeToggle } from "@/components/crypto/ThemeToggle";
+import { CurrencySelect } from "@/components/crypto/CurrencySelect";
 import { ErrorBoundary } from "@/components/crypto/ErrorBoundary";
 import { ExportButton } from "@/components/crypto/ExportButton";
 import type { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ vs?: string }> | { vs?: string };
 }
 
 export async function generateMetadata({
@@ -37,8 +38,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function CoinPage({ params }: PageProps) {
+export default async function CoinPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const sp = searchParams instanceof Promise ? await searchParams : searchParams || {};
+  const vs = (sp.vs as string | undefined)?.toLowerCase() || "usd";
 
   let coinData;
   let historicalData;
@@ -46,11 +49,11 @@ export default async function CoinPage({ params }: PageProps) {
   let news;
 
   try {
-    [coinData, historicalData, marketData, news] = await Promise.all([
-      getCoinData(id),
-      getHistoricalData(id, 7),
-      getCoinMarketData(id),
-      getCryptoNews(id).catch(() => []),
+    coinData = await getCoinData(id, vs);
+    [historicalData, marketData, news] = await Promise.all([
+      getHistoricalData(id, 7, vs),
+      getCoinMarketData(id, vs),
+      getCryptoNews({ coinId: id, symbol: coinData.symbol }).catch(() => []),
     ]);
   } catch (error) {
     if (
@@ -65,27 +68,15 @@ export default async function CoinPage({ params }: PageProps) {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/logo.svg"
-                alt="Crypto Dashboard"
-                width={120}
-                height={15}
-                className="dark:invert"
-                priority
-              />
-              <h1 className="text-2xl font-bold">Crypto Dashboard</h1>
-            </div>
-            <div className="flex gap-2">
+        <div className="container mx-auto px-6 py-6 max-w-7xl">
+          <div className="flex justify-end items-center mb-8 gap-2">
+            <CurrencySelect value={vs.toUpperCase()} />
               <ExportButton
                 coinData={coinData}
                 marketData={marketData}
                 coinId={id}
               />
               <ThemeToggle />
-            </div>
           </div>
 
           <PriceHeader
@@ -93,17 +84,18 @@ export default async function CoinPage({ params }: PageProps) {
             initialPrice={coinData.current_price}
             initialChange={coinData.price_change_percentage_24h}
             coinId={id}
+            currency={vs.toUpperCase()}
           />
 
-          <div className="mt-8">
-            <PriceChart coinId={id} initialData={historicalData} />
+          <div className="mt-6">
+            <PriceChart coinId={id} initialData={historicalData} currency={vs.toUpperCase()} />
           </div>
 
-          <div className="mt-8">
-            <MarketDataComponent coinId={id} initialMarketData={marketData} />
+          <div className="mt-12">
+            <MarketDataComponent coinId={id} initialMarketData={marketData} currency={vs.toUpperCase()} />
           </div>
 
-          <div className="mt-8">
+          <div className="mt-12">
             <NewsSection coinId={id} initialNews={news} />
           </div>
         </div>

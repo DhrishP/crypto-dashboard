@@ -6,6 +6,8 @@ import {
   ToastTitle,
   ToastDescription,
   ToastClose,
+  ToastViewport,
+  ToastProvider as RadixToastProvider,
 } from "@/components/ui/toast";
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
@@ -57,6 +59,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <RadixToastProvider>
     <ToastContext.Provider value={{ toast }}>
       {children}
       {toasts.map((toastProps) => (
@@ -68,6 +71,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <ToastClose />
         </Toast>
       ))}
+        <ToastViewport />
     </ToastContext.Provider>
+    </RadixToastProvider>
   );
 }

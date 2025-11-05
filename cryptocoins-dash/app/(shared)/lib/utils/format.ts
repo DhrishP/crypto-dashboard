@@ -44,3 +44,35 @@ export function formatSupply(value: number): string {
     maximumFractionDigits: 1,
   }).format(value);
 }
+
+export function getCurrencySymbol(currency: string = "USD"): string {
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).formatToParts(0);
+    const sym = parts.find((p) => p.type === "currency")?.value;
+    return sym || "$";
+  } catch {
+    return "$";
+  }
+}
+
+export function formatLargeCurrency(value: number, currency: string = "USD"): string {
+  const symbol = getCurrencySymbol(currency);
+  if (value >= 1e12) {
+    return `${symbol}${(value / 1e12).toFixed(2)}T`;
+  }
+  if (value >= 1e9) {
+    return `${symbol}${(value / 1e9).toFixed(2)}B`;
+  }
+  if (value >= 1e6) {
+    return `${symbol}${(value / 1e6).toFixed(2)}M`;
+  }
+  if (value >= 1e3) {
+    return `${symbol}${(value / 1e3).toFixed(2)}K`;
+  }
+  return `${symbol}${value.toFixed(2)}`;
+}

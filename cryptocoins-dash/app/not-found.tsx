@@ -18,9 +18,6 @@ export default function NotFound() {
             <Button asChild>
               <Link href="/token/ethereum">Go to Ethereum</Link>
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/token/bitcoin">Go to Bitcoin</Link>
-            </Button>
           </div>
         </CardContent>
       </Card>

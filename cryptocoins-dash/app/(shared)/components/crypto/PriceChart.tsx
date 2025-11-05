@@ -1,67 +1,91 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { HistoricalData, TimeRange, TIME_RANGE_DAYS } from "@/lib/types/crypto";
-import {
-  getHistoricalData,
-  getBitcoinData,
-  ApiError,
-} from "@/lib/api/coingecko";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { HistoricalData, TimeRange, TIME_RANGE_DAYS, OHLCPoint } from "@/lib/types/crypto";
+import { getHistoricalData, getBitcoinData, ApiError, getOHLCData } from "@/lib/api/coingecko";
 import { TooltipProps } from "@/lib/types/tooltip";
 import { TimeRangeSelector } from "@/components/crypto/TimeRangeSelector";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils/format";
+import { CandlestickChart } from "@/components/crypto/CandlestickChart";
 
 interface PriceChartProps {
   coinId: string;
   initialData: HistoricalData;
+  currency?: string;
 }
 
-export function PriceChart({ coinId, initialData }: PriceChartProps) {
+export function PriceChart({ coinId, initialData, currency = "USD" }: PriceChartProps) {
   const [chartData, setChartData] = useState<HistoricalData>(initialData);
   const [bitcoinData, setBitcoinData] = useState<HistoricalData | null>(null);
   const [selectedRange, setSelectedRange] = useState<TimeRange>("24h");
   const [isCandlestick, setIsCandlestick] = useState(false);
+  const [ohlc, setOhlc] = useState<OHLCPoint[] | null>(null);
   const [showBitcoin, setShowBitcoin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const fetchChartData = useCallback(
-    async (range: TimeRange) => {
+    async (range: TimeRange, retryCount = 0) => {
       try {
         setLoading(true);
-        const days = TIME_RANGE_DAYS[range];
-        const coinData = await getHistoricalData(coinId, days);
+        if (isCandlestick) {
+          const mapRange = (r: TimeRange): 1 | 7 | 14 | 30 | 90 | 180 | 365 => {
+            switch (r) {
+              case "1h":
+              case "24h":
+                return 1;
+              case "7d":
+                return 7;
+              case "30d":
+                return 30;
+              case "90d":
+                return 90;
+              case "180d":
+                return 180;
+              case "365d":
+              case "all":
+              default:
+                return 365;
+            }
+          };
+          const raw = await getOHLCData(coinId, mapRange(range));
+          const mapped: OHLCPoint[] = raw.map((p) => ({
+            time: p[0],
+            open: p[1],
+            high: p[2],
+            low: p[3],
+            close: p[4],
+          }));
+          setOhlc(mapped);
+        } else {
+          const days = TIME_RANGE_DAYS[range];
+          const coinData = await getHistoricalData(coinId, days, currency.toLowerCase());
         setChartData(coinData);
+        }
       } catch (error) {
+        if (
+          error instanceof ApiError &&
+          error.statusCode === 429 &&
+          retryCount < 3
+        ) {
+          const waitTime = Math.pow(2, retryCount) * 5000;
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+          return fetchChartData(range, retryCount + 1);
+        }
         const errorMessage =
           error instanceof ApiError
             ? error.message
             : error instanceof Error
               ? error.message
               : "Failed to fetch chart data";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    [coinId, toast]
+    [coinId, isCandlestick, currency]
   );
 
   useEffect(() => {
@@ -73,16 +97,12 @@ export function PriceChart({ coinId, initialData }: PriceChartProps) {
       getBitcoinData()
         .then(setBitcoinData)
         .catch(() => {
-          toast({
-            title: "Error",
-            description: "Failed to fetch Bitcoin comparison data",
-            variant: "destructive",
-          });
+          toast.error("Failed to fetch Bitcoin comparison data");
         });
     } else {
       setBitcoinData(null);
     }
-  }, [showBitcoin, toast]);
+  }, [showBitcoin]);
 
   const formatChartData = () => {
     return chartData.prices.map(([timestamp, price], index) => {
@@ -132,7 +152,65 @@ export function PriceChart({ coinId, initialData }: PriceChartProps) {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+      <div className="h-[450px] w-full">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-gray-400">Loading chart data...</div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+              {isCandlestick && ohlc ? (
+                <CandlestickChart data={ohlc} />
+              ) : (
+              <AreaChart data={data}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="time"
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={yAxisDomain}
+                  orientation="right"
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) => formatCurrency(value, currency)}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fill="url(#colorPrice)"
+                  dot={false}
+                  activeDot={{ r: 6 }}
+                />
+                {showBitcoin && bitcoinData && (
+                  <Area
+                    type="monotone"
+                    dataKey="btcPrice"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    fill="none"
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                )}
+              </AreaChart>
+            )}
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
         <TimeRangeSelector
           selectedRange={selectedRange}
           onRangeChange={setSelectedRange}
@@ -142,103 +220,18 @@ export function PriceChart({ coinId, initialData }: PriceChartProps) {
             variant={showBitcoin ? "default" : "outline"}
             size="sm"
             onClick={() => setShowBitcoin(!showBitcoin)}
+            className={isCandlestick ? "hidden" : ""}
           >
             {showBitcoin ? "Hide" : "Show"} BTC Comparison
           </Button>
           <Button
             variant={isCandlestick ? "default" : "outline"}
             size="sm"
-            onClick={() => setIsCandlestick(!isCandlestick)}
+            onClick={() => setIsCandlestick((s) => !s)}
           >
-            {isCandlestick ? "Line" : "Candlestick"}
+            {isCandlestick ? "Line" : "Candles"}
           </Button>
         </div>
-      </div>
-
-      <div className="h-[400px] w-full">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-muted-foreground">Loading chart data...</div>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            {isCandlestick ? (
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="time"
-                  className="text-muted-foreground"
-                  tick={{ fill: "currentColor" }}
-                />
-                <YAxis
-                  domain={yAxisDomain}
-                  className="text-muted-foreground"
-                  tick={{ fill: "currentColor" }}
-                  tickFormatter={(value) => formatCurrency(value)}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="price"
-                  stroke="#14b8a6"
-                  strokeWidth={2}
-                  fill="url(#colorPrice)"
-                />
-                {showBitcoin && bitcoinData && (
-                  <Line
-                    type="monotone"
-                    dataKey="btcPrice"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                  />
-                )}
-              </AreaChart>
-            ) : (
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="time"
-                  className="text-muted-foreground"
-                  tick={{ fill: "currentColor" }}
-                />
-                <YAxis
-                  domain={yAxisDomain}
-                  className="text-muted-foreground"
-                  tick={{ fill: "currentColor" }}
-                  tickFormatter={(value) => formatCurrency(value)}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="price"
-                  stroke="#14b8a6"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 6 }}
-                />
-                {showBitcoin && bitcoinData && (
-                  <Line
-                    type="monotone"
-                    dataKey="btcPrice"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                    name="Bitcoin"
-                  />
-                )}
-              </LineChart>
-            )}
-          </ResponsiveContainer>
-        )}
       </div>
     </div>
   );

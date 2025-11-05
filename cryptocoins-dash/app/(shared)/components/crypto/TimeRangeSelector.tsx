@@ -30,13 +30,13 @@ export function TimeRangeSelector({
         <Button
           key={range.value}
           onClick={() => onRangeChange(range.value)}
-          variant="ghost"
+          variant="outline"
           size="sm"
           className={cn(
-            "h-8 rounded-full px-4 text-sm font-medium transition-colors",
+            "h-8 rounded-full px-4 text-sm font-medium transition-all duration-200 cursor-pointer border-2",
             selectedRange === range.value
-              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              ? "dark:bg-[#082a48] dark:text-[#00d9ff] dark:border-[#00d9ff] dark:shadow-[0_0_10px_rgba(0,217,255,0.45)] bg-[#e6f7ff] text-[#006a80] border-[#a6eaff] hover:bg-[#d2f3ff]"
+              : "bg-transparent text-gray-700 border-gray-300 hover:bg-[#e6f7ff]/60 hover:text-[#006a80] hover:border-[#00bcd4] dark:text-gray-300 dark:border-[#00d9ff]/40 dark:hover:bg-[#082a48]/20 dark:hover:text-[#00d9ff] dark:hover:border-[#00d9ff] dark:hover:shadow-[0_0_8px_rgba(0,217,255,0.35)]"
           )}
         >
           {range.label}
