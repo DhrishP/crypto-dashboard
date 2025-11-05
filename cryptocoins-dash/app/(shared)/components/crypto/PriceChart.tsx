@@ -1,9 +1,26 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { HistoricalData, TimeRange, TIME_RANGE_DAYS, OHLCPoint } from "@/lib/types/crypto";
-import { getHistoricalData, getBitcoinData, ApiError, getOHLCData } from "@/lib/api/coingecko";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  HistoricalData,
+  TimeRange,
+  TIME_RANGE_DAYS,
+  OHLCPoint,
+} from "@/lib/types/crypto";
+import {
+  getHistoricalData,
+  getBitcoinData,
+  ApiError,
+  getOHLCData,
+} from "@/lib/api/coingecko";
 import { TooltipProps } from "@/lib/types/tooltip";
 import { TimeRangeSelector } from "@/components/crypto/TimeRangeSelector";
 import { Button } from "@/components/ui/button";
@@ -17,7 +34,11 @@ interface PriceChartProps {
   currency?: string;
 }
 
-export function PriceChart({ coinId, initialData, currency = "USD" }: PriceChartProps) {
+export function PriceChart({
+  coinId,
+  initialData,
+  currency = "USD",
+}: PriceChartProps) {
   const [chartData, setChartData] = useState<HistoricalData>(initialData);
   const [bitcoinData, setBitcoinData] = useState<HistoricalData | null>(null);
   const [selectedRange, setSelectedRange] = useState<TimeRange>("24h");
@@ -61,8 +82,12 @@ export function PriceChart({ coinId, initialData, currency = "USD" }: PriceChart
           setOhlc(mapped);
         } else {
           const days = TIME_RANGE_DAYS[range];
-          const coinData = await getHistoricalData(coinId, days, currency.toLowerCase());
-        setChartData(coinData);
+          const coinData = await getHistoricalData(
+            coinId,
+            days,
+            currency.toLowerCase()
+          );
+          setChartData(coinData);
         }
       } catch (error) {
         if (
@@ -159,14 +184,14 @@ export function PriceChart({ coinId, initialData, currency = "USD" }: PriceChart
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-              {isCandlestick && ohlc ? (
-                <CandlestickChart data={ohlc} />
-              ) : (
+            {isCandlestick && ohlc ? (
+              <CandlestickChart data={ohlc} />
+            ) : (
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis

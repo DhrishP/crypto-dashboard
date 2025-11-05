@@ -15,7 +15,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     () => [
       {
         name: "OHLC",
-        data: data.map((d) => ({ x: new Date(d.time), y: [d.open, d.high, d.low, d.close] })),
+        data: data.map((d) => ({
+          x: new Date(d.time),
+          y: [d.open, d.high, d.low, d.close],
+        })),
       },
     ],
     [data]
@@ -29,15 +32,26 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         animations: { enabled: false },
         background: "transparent",
       },
-      theme: { mode: document.documentElement.classList.contains("dark") ? "dark" : "light" },
+      theme: {
+        mode: document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light",
+      },
       xaxis: {
         type: "datetime",
         labels: { show: true, style: { colors: "#94a3b8" } },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
-      yaxis: { tooltip: { enabled: true }, labels: { style: { colors: "#94a3b8" } } },
-      grid: { borderColor: "#2a2a2a", xaxis: { lines: { show: true } }, yaxis: { lines: { show: true } } },
+      yaxis: {
+        tooltip: { enabled: true },
+        labels: { style: { colors: "#94a3b8" } },
+      },
+      grid: {
+        borderColor: "#2a2a2a",
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: true } },
+      },
       plotOptions: {
         candlestick: {
           colors: { upward: "#16a34a", downward: "#ef4444" },
@@ -50,8 +64,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
   return (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <ApexChart options={options as any} series={series as any} type="candlestick" height={400} />
+    <ApexChart
+      options={options as any}
+      series={series as any}
+      type="candlestick"
+      height={400}
+    />
   );
 }
-
-

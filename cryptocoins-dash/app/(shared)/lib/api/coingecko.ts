@@ -6,7 +6,7 @@ import {
 } from "@/lib/types/crypto";
 
 const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY;
-const COINGECKO_API_TIER = process.env.COINGECKO_API_TIER || "demo"; 
+const COINGECKO_API_TIER = process.env.COINGECKO_API_TIER || "demo";
 const COINGECKO_API_BASE =
   COINGECKO_API_TIER === "pro"
     ? "https://pro-api.coingecko.com/api/v3"
@@ -33,13 +33,13 @@ async function fetchWithErrorHandling<T>(
   try {
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
-    
+
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
       await new Promise((resolve) =>
         setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest)
       );
     }
-    
+
     lastRequestTime = Date.now();
 
     const headers: Record<string, string> = {
@@ -63,9 +63,7 @@ async function fetchWithErrorHandling<T>(
     if (!response.ok) {
       if (response.status === 429) {
         const retryAfter = response.headers.get("retry-after");
-        const waitTime = retryAfter
-          ? parseInt(retryAfter, 10) * 1000
-          : 60000;
+        const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 60000;
         throw new ApiError(
           `Rate limit exceeded. Retry after ${waitTime / 1000} seconds`,
           429,
@@ -93,7 +91,10 @@ async function fetchWithErrorHandling<T>(
   }
 }
 
-export async function getCoinData(id: string, vsCurrency: string = "usd"): Promise<CoinData> {
+export async function getCoinData(
+  id: string,
+  vsCurrency: string = "usd"
+): Promise<CoinData> {
   const url = `${COINGECKO_API_BASE}/coins/markets?vs_currency=${vsCurrency}&ids=${id}&order=market_cap_desc&per_page=1&page=1&sparkline=false&price_change_percentage=24h%2C7d`;
 
   const data = await fetchWithErrorHandling<CoinData[]>(url);
@@ -126,23 +127,33 @@ export async function getOHLCData(
   days: 1 | 7 | 14 | 30 | 90 | 180 | 365
 ): Promise<[number, number, number, number, number][]> {
   const url = `${COINGECKO_API_BASE}/coins/${id}/ohlc?vs_currency=usd&days=${days}`;
-  return await fetchWithErrorHandling<[number, number, number, number, number][]>(url);
+  return await fetchWithErrorHandling<
+    [number, number, number, number, number][]
+  >(url);
 }
 
-export async function getCoinMarketData(id: string, vsCurrency: string = "usd"): Promise<MarketData> {
+export async function getCoinMarketData(
+  id: string,
+  vsCurrency: string = "usd"
+): Promise<MarketData> {
   const coinInfo = await getCoinInfo(id);
   const marketData = coinInfo.market_data;
 
   return {
     marketCap: marketData.market_cap[vsCurrency] ?? marketData.market_cap.usd,
     rank: marketData.market_cap_rank || 0,
-    volume24h: marketData.total_volume[vsCurrency] ?? marketData.total_volume.usd,
+    volume24h:
+      marketData.total_volume[vsCurrency] ?? marketData.total_volume.usd,
     circulatingSupply: marketData.circulating_supply || 0,
     totalSupply: marketData.total_supply || marketData.circulating_supply || 0,
     ath: marketData.ath[vsCurrency] ?? marketData.ath.usd,
-    athChangePercentage: marketData.ath_change_percentage[vsCurrency] ?? marketData.ath_change_percentage.usd,
+    athChangePercentage:
+      marketData.ath_change_percentage[vsCurrency] ??
+      marketData.ath_change_percentage.usd,
     atl: marketData.atl[vsCurrency] ?? marketData.atl.usd,
-    atlChangePercentage: marketData.atl_change_percentage[vsCurrency] ?? marketData.atl_change_percentage.usd,
+    atlChangePercentage:
+      marketData.atl_change_percentage[vsCurrency] ??
+      marketData.atl_change_percentage.usd,
   };
 }
 

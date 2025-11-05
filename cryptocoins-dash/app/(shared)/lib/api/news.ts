@@ -49,7 +49,9 @@ interface CoinGeckoNewsItem {
   image_url?: string;
 }
 
-export async function getCryptoNews(options?: GetNewsOptions): Promise<NewsItem[]> {
+export async function getCryptoNews(
+  options?: GetNewsOptions
+): Promise<NewsItem[]> {
   try {
     if (CRYPTOPANIC_API_KEY && options?.symbol) {
       const qp = new URLSearchParams({
@@ -61,10 +63,15 @@ export async function getCryptoNews(options?: GetNewsOptions): Promise<NewsItem[
       const cpUrl = `https://cryptopanic.com/api/v1/posts/?${qp.toString()}`;
       const cpRes = await fetch(cpUrl, { next: { revalidate: 60 } });
       if (!cpRes.ok) {
-        throw new NewsApiError(`Failed to fetch CryptoPanic: ${cpRes.statusText}`, cpRes.status);
+        throw new NewsApiError(
+          `Failed to fetch CryptoPanic: ${cpRes.statusText}`,
+          cpRes.status
+        );
       }
       const cpJson: CryptoPanicResponse = await cpRes.json();
-      const posts: CryptoPanicPost[] = Array.isArray(cpJson?.results) ? cpJson.results : [];
+      const posts: CryptoPanicPost[] = Array.isArray(cpJson?.results)
+        ? cpJson.results
+        : [];
       return posts.slice(0, 12).map((p: CryptoPanicPost) => ({
         id: String(p.id ?? p.slug ?? p.title ?? ""),
         title: p.title ?? "",
@@ -90,7 +97,8 @@ export async function getCryptoNews(options?: GetNewsOptions): Promise<NewsItem[
       );
     }
 
-    const json: CoinGeckoNewsItem[] | { data?: CoinGeckoNewsItem[] } = await response.json();
+    const json: CoinGeckoNewsItem[] | { data?: CoinGeckoNewsItem[] } =
+      await response.json();
     const items: CoinGeckoNewsItem[] = Array.isArray(json)
       ? json
       : Array.isArray(json?.data)
@@ -102,7 +110,8 @@ export async function getCryptoNews(options?: GetNewsOptions): Promise<NewsItem[
       title: it.title ?? "",
       description: it.description ?? it.content ?? "",
       url: it.url ?? it.link ?? "#",
-      published_at: it.published_at ?? it.created_at ?? new Date().toISOString(),
+      published_at:
+        it.published_at ?? it.created_at ?? new Date().toISOString(),
       source: it.source ?? it.author ?? undefined,
       thumb_2x: it.thumb_2x ?? it.image_url ?? undefined,
     }));

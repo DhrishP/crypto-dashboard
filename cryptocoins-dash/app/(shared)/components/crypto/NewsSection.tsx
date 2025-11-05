@@ -48,9 +48,7 @@ export function NewsSection({ coinId, initialNews }: NewsSectionProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-8">
-        Latest News
-      </h2>
+      <h2 className="text-2xl font-bold text-foreground mb-8">Latest News</h2>
       <div className="space-y-4">
         {news.map((item) => (
           <a
@@ -75,11 +73,13 @@ export function NewsSection({ coinId, initialNews }: NewsSectionProps) {
                   {item.title}
                 </h3>
                 <p className="text-sm text-gray-400 line-clamp-2 mt-1">
-                {item.description}
-              </p>
+                  {item.description}
+                </p>
                 <div className="flex justify-between items-center text-xs text-gray-500 mt-2">
-                <span>{item.source || "Unknown"}</span>
-                <span>{new Date(item.published_at).toLocaleDateString()}</span>
+                  <span>{item.source || "Unknown"}</span>
+                  <span>
+                    {new Date(item.published_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -87,7 +87,9 @@ export function NewsSection({ coinId, initialNews }: NewsSectionProps) {
         ))}
       </div>
       {loading && (
-        <div className="text-center text-muted-foreground mt-4">Loading news...</div>
+        <div className="text-center text-muted-foreground mt-4">
+          Loading news...
+        </div>
       )}
     </div>
   );

@@ -39,10 +39,7 @@ export function PriceHeader({
         setPrice(updatedData.current_price);
         setChange(updatedData.price_change_percentage_24h);
       } catch (error) {
-        if (
-          error instanceof ApiError &&
-          error.statusCode === 429
-        ) {
+        if (error instanceof ApiError && error.statusCode === 429) {
           toast.error("Rate limit exceeded", {
             description: "Updates paused temporarily. Please wait.",
           });
@@ -71,13 +68,13 @@ export function PriceHeader({
     <div className="mb-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="relative">
-        <Image
-          src={coinData.image}
-          alt={coinData.name}
-          width={48}
-          height={48}
-          className="rounded-full"
-        />
+          <Image
+            src={coinData.image}
+            alt={coinData.name}
+            width={48}
+            height={48}
+            className="rounded-full"
+          />
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -85,23 +82,24 @@ export function PriceHeader({
           )}
         </div>
         <h2 className="text-xl font-semibold text-foreground">
-            {coinData.name}{" "}
+          {coinData.name}{" "}
           <span className="text-muted-foreground font-normal">
-              {coinData.symbol.toUpperCase()}
-            </span>
-          </h2>
-        </div>
+            {coinData.symbol.toUpperCase()}
+          </span>
+        </h2>
+      </div>
 
       <div className="text-5xl font-bold text-foreground mb-2">
         {formatCurrency(price, currency)}
       </div>
 
-        <div
+      <div
         className={`text-lg font-medium ${
           isPositive ? "text-emerald-500" : "text-red-500"
         }`}
-        >
-        {isPositive ? "+" : ""}{formatPercentage(change)}
+      >
+        {isPositive ? "+" : ""}
+        {formatPercentage(change)}
       </div>
     </div>
   );

@@ -13,7 +13,9 @@ import { Toaster as Sonner, type ToasterProps } from "sonner";
 const Toaster = ({ ...props }: ToasterProps) => {
   const getInitialTheme = (): "light" | "dark" => {
     if (typeof document === "undefined") return "dark";
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+    return document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
   };
 
   const [theme, setTheme] = useState<"light" | "dark">(getInitialTheme);

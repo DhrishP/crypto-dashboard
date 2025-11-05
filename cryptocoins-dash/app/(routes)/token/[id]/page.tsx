@@ -40,7 +40,8 @@ export async function generateMetadata({
 
 export default async function CoinPage({ params, searchParams }: PageProps) {
   const { id } = await params;
-  const sp = searchParams instanceof Promise ? await searchParams : searchParams || {};
+  const sp =
+    searchParams instanceof Promise ? await searchParams : searchParams || {};
   const vs = (sp.vs as string | undefined)?.toLowerCase() || "usd";
 
   let coinData;
@@ -71,12 +72,12 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
         <div className="container mx-auto px-6 py-6 max-w-7xl">
           <div className="flex justify-end items-center mb-8 gap-2">
             <CurrencySelect value={vs.toUpperCase()} />
-              <ExportButton
-                coinData={coinData}
-                marketData={marketData}
-                coinId={id}
-              />
-              <ThemeToggle />
+            <ExportButton
+              coinData={coinData}
+              marketData={marketData}
+              coinId={id}
+            />
+            <ThemeToggle />
           </div>
 
           <PriceHeader
@@ -88,11 +89,19 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
           />
 
           <div className="mt-6">
-            <PriceChart coinId={id} initialData={historicalData} currency={vs.toUpperCase()} />
+            <PriceChart
+              coinId={id}
+              initialData={historicalData}
+              currency={vs.toUpperCase()}
+            />
           </div>
 
           <div className="mt-12">
-            <MarketDataComponent coinId={id} initialMarketData={marketData} currency={vs.toUpperCase()} />
+            <MarketDataComponent
+              coinId={id}
+              initialMarketData={marketData}
+              currency={vs.toUpperCase()}
+            />
           </div>
 
           <div className="mt-12">

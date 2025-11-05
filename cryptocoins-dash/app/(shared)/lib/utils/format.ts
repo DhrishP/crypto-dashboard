@@ -60,7 +60,10 @@ export function getCurrencySymbol(currency: string = "USD"): string {
   }
 }
 
-export function formatLargeCurrency(value: number, currency: string = "USD"): string {
+export function formatLargeCurrency(
+  value: number,
+  currency: string = "USD"
+): string {
   const symbol = getCurrencySymbol(currency);
   if (value >= 1e12) {
     return `${symbol}${(value / 1e12).toFixed(2)}T`;

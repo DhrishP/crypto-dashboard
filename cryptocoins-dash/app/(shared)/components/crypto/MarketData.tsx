@@ -1,7 +1,12 @@
 "use client";
 
 import type { MarketData } from "@/lib/types/crypto";
-import { formatCurrency, formatLargeCurrency, formatPercentage, formatSupply } from "@/lib/utils/format";
+import {
+  formatCurrency,
+  formatLargeCurrency,
+  formatPercentage,
+  formatSupply,
+} from "@/lib/utils/format";
 
 interface MetricCardProps {
   label: string;
@@ -10,31 +15,26 @@ interface MetricCardProps {
   subtitle?: string;
 }
 
-function MetricCard({
-  label,
-  value,
-  change,
-  subtitle,
-}: MetricCardProps) {
+function MetricCard({ label, value, change, subtitle }: MetricCardProps) {
   const isPositive = change !== undefined && change >= 0;
 
   return (
     <div>
       <p className="text-sm text-muted-foreground mb-2">{label}</p>
       <p className="text-2xl font-semibold text-foreground">{value}</p>
-            {change !== undefined && (
-              <p
-                className={`text-sm font-medium mt-1 ${
+      {change !== undefined && (
+        <p
+          className={`text-sm font-medium mt-1 ${
             isPositive ? "text-emerald-500" : "text-red-500"
-                }`}
-              >
-                {formatPercentage(change)}
-              </p>
-            )}
+          }`}
+        >
+          {formatPercentage(change)}
+        </p>
+      )}
       {subtitle && (
         <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-          )}
-        </div>
+      )}
+    </div>
   );
 }
 
@@ -44,7 +44,11 @@ interface MarketDataProps {
   currency?: string;
 }
 
-export function MarketData({ coinId, initialMarketData, currency = "USD" }: MarketDataProps) {
+export function MarketData({
+  coinId,
+  initialMarketData,
+  currency = "USD",
+}: MarketDataProps) {
   const supplyPercentage =
     initialMarketData.totalSupply > 0
       ? (initialMarketData.circulatingSupply / initialMarketData.totalSupply) *
@@ -57,13 +61,12 @@ export function MarketData({ coinId, initialMarketData, currency = "USD" }: Mark
     return formatSupply(value);
   };
 
-  const tickerSymbol = coinId.toUpperCase().slice(0, 3) === 'ETH' ? 'ETH' : coinId.toUpperCase();
+  const tickerSymbol =
+    coinId.toUpperCase().slice(0, 3) === "ETH" ? "ETH" : coinId.toUpperCase();
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-8">
-        Market data
-      </h2>
+      <h2 className="text-2xl font-bold text-foreground mb-8">Market data</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-8">
         <MetricCard
           label="Market cap"

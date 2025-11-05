@@ -60,19 +60,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <RadixToastProvider>
-    <ToastContext.Provider value={{ toast }}>
-      {children}
-      {toasts.map((toastProps) => (
-        <Toast key={toastProps.id} {...toastProps}>
-          {toastProps.title && <ToastTitle>{toastProps.title}</ToastTitle>}
-          {toastProps.description && (
-            <ToastDescription>{toastProps.description}</ToastDescription>
-          )}
-          <ToastClose />
-        </Toast>
-      ))}
+      <ToastContext.Provider value={{ toast }}>
+        {children}
+        {toasts.map((toastProps) => (
+          <Toast key={toastProps.id} {...toastProps}>
+            {toastProps.title && <ToastTitle>{toastProps.title}</ToastTitle>}
+            {toastProps.description && (
+              <ToastDescription>{toastProps.description}</ToastDescription>
+            )}
+            <ToastClose />
+          </Toast>
+        ))}
         <ToastViewport />
-    </ToastContext.Provider>
+      </ToastContext.Provider>
     </RadixToastProvider>
   );
 }
