@@ -14,6 +14,8 @@ import { ThemeToggle } from "@/components/crypto/ThemeToggle";
 import { CurrencySelect } from "@/components/crypto/CurrencySelect";
 import { ErrorBoundary } from "@/components/crypto/ErrorBoundary";
 import { ExportButton } from "@/components/crypto/ExportButton";
+import { WalletConnectButton } from "@/components/crypto/WalletConnectButton";
+import { TokenBalance } from "@/components/crypto/TokenBalance";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -67,14 +69,18 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-6 py-6 max-w-7xl">
-          <div className="flex justify-end items-center mb-8 gap-2">
-            <CurrencySelect value={vs.toUpperCase()} />
-            <ExportButton
-              coinData={coinData}
-              marketData={marketData}
-              coinId={id}
-            />
-            <ThemeToggle />
+          <div className="flex justify-between items-center mb-8 gap-3 flex-wrap">
+            <WalletConnectButton />
+            <div className="flex items-center gap-2 flex-wrap">
+              <TokenBalance coinId={id} symbol={coinData.symbol} />
+              <CurrencySelect value={vs.toUpperCase()} />
+              <ExportButton
+                coinData={coinData}
+                marketData={marketData}
+                coinId={id}
+              />
+              <ThemeToggle />
+            </div>
           </div>
 
           <PriceHeader
