@@ -29,7 +29,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./app/*"],
+      "@/components/*": ["./app/(shared)/components/*"],
+      "@/lib/*": ["./app/(shared)/lib/*"]
     }
   },
   "include": [

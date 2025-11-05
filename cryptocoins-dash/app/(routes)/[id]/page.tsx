@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import {
   getCoinData,
   getHistoricalData,
@@ -66,7 +67,17 @@ export default async function CoinPage({ params }: PageProps) {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Crypto Dashboard</h1>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo.svg"
+                alt="Crypto Dashboard"
+                width={120}
+                height={15}
+                className="dark:invert"
+                priority
+              />
+              <h1 className="text-2xl font-bold">Crypto Dashboard</h1>
+            </div>
             <div className="flex gap-2">
               <ExportButton
                 coinData={coinData}
