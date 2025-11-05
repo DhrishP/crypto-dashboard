@@ -69,7 +69,10 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-6 py-6 max-w-7xl">
-          <div className="flex justify-between items-center mb-8 gap-3 flex-wrap">
+          <div className="relative flex justify-between items-center mb-8 gap-3 flex-wrap">
+            <div className="sm:hidden absolute top-0 right-0 z-10">
+              <ThemeToggle />
+            </div>
             <WalletConnectButton />
             <div className="flex items-center gap-2 flex-wrap">
               <TokenBalance coinId={id} symbol={coinData.symbol} />
@@ -79,7 +82,9 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
                 marketData={marketData}
                 coinId={id}
               />
-              <ThemeToggle />
+              <div className="hidden sm:inline-flex">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
 

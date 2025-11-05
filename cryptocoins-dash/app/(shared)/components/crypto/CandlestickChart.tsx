@@ -69,7 +69,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       series={series as any}
       type="candlestick"
-      height={400}
+      width="100%"
+      height="100%"
     />
   );
 }
