@@ -67,7 +67,7 @@ export function MarketData({
   return (
     <div>
       <h2 className="text-2xl font-bold text-foreground mb-8">Market data</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-8">
         <MetricCard
           label="Market cap"
           value={formatLargeCurrency(initialMarketData.marketCap, currency)}

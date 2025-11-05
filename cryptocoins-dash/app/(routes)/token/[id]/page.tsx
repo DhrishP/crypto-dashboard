@@ -25,17 +25,14 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  try {
-    const coinData = await getCoinData(id);
-    return {
-      title: `${coinData.name} (${coinData.symbol.toUpperCase()}) - Crypto Dashboard`,
-      description: `View ${coinData.name} price, market data, and news`,
-    };
-  } catch {
-    return {
-      title: "Crypto Dashboard",
-    };
-  }
+  const coinName = id
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  return {
+    title: `${coinName} - Crypto Dashboard`,
+    description: `View ${coinName} price, market data, and news`,
+  };
 }
 
 export default async function CoinPage({ params, searchParams }: PageProps) {
@@ -52,7 +49,7 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
   try {
     coinData = await getCoinData(id, vs);
     [historicalData, marketData, news] = await Promise.all([
-      getHistoricalData(id, 7, vs),
+      getHistoricalData(id, 1, vs),
       getCoinMarketData(id, vs),
       getCryptoNews({ coinId: id, symbol: coinData.symbol }).catch(() => []),
     ]);
@@ -88,7 +85,7 @@ export default async function CoinPage({ params, searchParams }: PageProps) {
             currency={vs.toUpperCase()}
           />
 
-          <div className="mt-6">
+          <div className="mt-6 min-w-0">
             <PriceChart
               coinId={id}
               initialData={historicalData}

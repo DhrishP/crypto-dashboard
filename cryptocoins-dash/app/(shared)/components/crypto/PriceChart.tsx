@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   AreaChart,
   Area,
@@ -15,12 +15,7 @@ import {
   TIME_RANGE_DAYS,
   OHLCPoint,
 } from "@/lib/types/crypto";
-import {
-  getHistoricalData,
-  getBitcoinData,
-  ApiError,
-  getOHLCData,
-} from "@/lib/api/coingecko";
+import { getHistoricalData, ApiError, getOHLCData } from "@/lib/api/coingecko";
 import { TooltipProps } from "@/lib/types/tooltip";
 import { TimeRangeSelector } from "@/components/crypto/TimeRangeSelector";
 import { Button } from "@/components/ui/button";
@@ -46,6 +41,7 @@ export function PriceChart({
   const [ohlc, setOhlc] = useState<OHLCPoint[] | null>(null);
   const [showBitcoin, setShowBitcoin] = useState(false);
   const [loading, setLoading] = useState(false);
+  const didMountRef = useRef(false);
 
   const fetchChartData = useCallback(
     async (range: TimeRange, retryCount = 0) => {
@@ -109,6 +105,14 @@ export function PriceChart({
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           return fetchChartData(range, retryCount + 1);
         }
+        console.error(error);
+        if (error instanceof ApiError && error.statusCode === 429) {
+          toast.error("Too many API requests", {
+            description:
+              "You're making too many requests to the market-charts endpoint. Please wait a moment before trying again.",
+          });
+          return;
+        }
         const errorMessage =
           error instanceof ApiError
             ? error.message
@@ -124,6 +128,11 @@ export function PriceChart({
   );
 
   useEffect(() => {
+    if (!didMountRef.current) {
+      // Skip duplicate fetch on mount; SSR provided initialData for default range
+      didMountRef.current = true;
+      return;
+    }
     fetchChartData(selectedRange);
   }, [selectedRange, fetchChartData]);
 
@@ -132,17 +141,19 @@ export function PriceChart({
     const interval = setInterval(() => {
       fetchChartData(selectedRange);
       if (showBitcoin) {
-        getBitcoinData()
+        const days = TIME_RANGE_DAYS[selectedRange];
+        getHistoricalData("bitcoin", days, currency.toLowerCase())
           .then(setBitcoinData)
           .catch(() => {});
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchChartData, selectedRange, showBitcoin]);
+  }, [fetchChartData, selectedRange, showBitcoin, currency]);
 
   useEffect(() => {
     if (showBitcoin) {
-      getBitcoinData()
+      const days = TIME_RANGE_DAYS[selectedRange];
+      getHistoricalData("bitcoin", days, currency.toLowerCase())
         .then(setBitcoinData)
         .catch(() => {
           toast.error("Failed to fetch Bitcoin comparison data");
@@ -150,7 +161,7 @@ export function PriceChart({
     } else {
       setBitcoinData(null);
     }
-  }, [showBitcoin]);
+  }, [showBitcoin, selectedRange, currency]);
 
   const formatChartData = () => {
     return chartData.prices.map(([timestamp, price], index) => {
@@ -199,8 +210,8 @@ export function PriceChart({
   };
 
   return (
-    <div className="w-full">
-      <div className="h-[450px] w-full">
+    <div className="w-full min-w-0">
+      <div className="w-full min-w-0 h-[300px] sm:h-[400px] md:h-[450px]">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-gray-400">Loading chart data...</div>
@@ -258,12 +269,12 @@ export function PriceChart({
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
+      <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-4 mt-6">
         <TimeRangeSelector
           selectedRange={selectedRange}
           onRangeChange={setSelectedRange}
         />
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center sm:justify-start items-center sm:items-start w-full sm:w-auto">
           <Button
             variant={showBitcoin ? "default" : "outline"}
             size="sm"

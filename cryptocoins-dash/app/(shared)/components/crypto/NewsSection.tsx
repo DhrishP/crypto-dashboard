@@ -60,18 +60,18 @@ export function NewsSection({ coinId, symbol, initialNews }: NewsSectionProps) {
             rel="noopener noreferrer"
             className="block border border-border rounded-lg p-4 transition-all duration-300 bg-card cursor-pointer hover:bg-accent/30 group"
           >
-            <div className="flex gap-4 items-start">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
               {item.thumb_2x ? (
                 <Image
                   src={item.thumb_2x}
                   alt={item.title}
-                  width={160}
-                  height={96}
+                  width={320}
+                  height={160}
                   unoptimized
-                  className="w-40 h-24 object-cover rounded-md shrink-0"
+                  className="w-full h-40 sm:w-40 sm:h-24 object-cover rounded-md shrink-0"
                 />
               ) : (
-                <div className="w-40 h-24 rounded-md shrink-0 bg-muted flex items-center justify-center border border-border">
+                <div className="w-full h-40 sm:w-40 sm:h-24 rounded-md shrink-0 bg-muted flex items-center justify-center border border-border">
                   <p className="text-xs text-muted-foreground text-center px-2">
                     No image available
                   </p>
