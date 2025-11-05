@@ -1,0 +1,54 @@
+{
+  "name": "cryptocoins-dash",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky install",
+    "precommit": "lint-staged",
+    "prepush": "bun run format:check && bun run lint && bun run build"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix"
+    ]
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "next": "16.0.1",
+    "recharts": "^2.12.7",
+    "@radix-ui/react-toast": "^1.2.2",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "lucide-react": "^0.445.0",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/papaparse": "^5.5.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
